@@ -336,6 +336,11 @@
       font-weight:700;
       color:#374151;
       padding:6px;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    .pager-btn:hover{
+      border-color:var(--primary);
+      background:#eff6ff;
     }
     .pager-btn.active{
       background:var(--primary);
@@ -346,11 +351,6 @@
       background:#dcfce7;
       color:#166534;
       border-color:#bbf7d0;
-    }
-    .pager-btn:disabled{
-      opacity: 0.4;
-      cursor: not-allowed;
-      background: #f3f4f6;
     }
     .results-layout{
       max-width:900px;
@@ -574,7 +574,6 @@
       screen: "login",
       currentStudent: null,
       currentIndex: 0,
-      maxReachedIndex: 0,
       answers: [],
       currentQuestions: [...allQuestions],
       timeLeft: 120 * 60,
@@ -654,7 +653,7 @@
               <li>You have 120 minutes to complete all questions.</li>
               <li>200 questions across 4 subjects.</li>
               <li>Click Submit when done or time will auto-submit.</li>
-              <li>Use the question navigator on the side to move between answered questions.</li>
+              <li>You can click any question number on the right navigator to skip around.</li>
             </ul>
           </div>
         </div>
@@ -732,7 +731,6 @@
         clearTimer();
         state.currentStudent = student;
         state.currentIndex = 0;
-        state.maxReachedIndex = 0;
         state.answers = Array(state.currentQuestions.length).fill(null);
         state.timeLeft = 120 * 60;
         state.screen = "exam";
@@ -827,12 +825,10 @@
               ${state.currentQuestions.map((_, idx) => {
                 const answered = state.answers[idx] !== null;
                 const active = idx === state.currentIndex;
-                const isLocked = idx > state.maxReachedIndex;
                 return `
                   <button
                     class="pager-btn ${active ? "active" : ""} ${answered ? "answered" : ""}"
                     data-pager="${idx}"
-                    ${isLocked ? "disabled" : ""}
                     title="Question ${idx + 1}"
                   >${idx + 1}</button>
                 `;
@@ -860,9 +856,6 @@
       document.getElementById("nextBtn").addEventListener("click", () => {
         if (state.currentIndex < state.currentQuestions.length - 1) {
           state.currentIndex += 1;
-          if (state.currentIndex > state.maxReachedIndex) {
-            state.maxReachedIndex = state.currentIndex;
-          }
           renderExam();
         } else {
           finishExam();
@@ -875,12 +868,11 @@
         state.currentStudent = null;
         state.answers = [];
         state.currentIndex = 0;
-        state.maxReachedIndex = 0;
         state.timeLeft = 120 * 60;
         render();
       });
 
-      document.querySelectorAll(".pager-btn:not(:disabled)").forEach(btn => {
+      document.querySelectorAll(".pager-btn").forEach(btn => {
         btn.addEventListener("click", () => {
           state.currentIndex = Number(btn.dataset.pager);
           renderExam();
@@ -978,7 +970,6 @@
         clearTimer();
         state.currentStudent = null;
         state.currentIndex = 0;
-        state.maxReachedIndex = 0;
         state.answers = [];
         state.studentResult = null;
         state.timeLeft = 120 * 60;
@@ -990,7 +981,6 @@
         clearTimer();
         state.currentStudent = null;
         state.currentIndex = 0;
-        state.maxReachedIndex = 0;
         state.answers = [];
         state.studentResult = null;
         state.timeLeft = 120 * 60;
