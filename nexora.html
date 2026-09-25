@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JAMB CBT Portal</title>
+  <style>
+    :root{
+      --bg:#f4f7fb;
+      --card:#ffffff;
+      --primary:#2563eb;
+      --primary-dark:#1d4ed8;
+      --muted:#6b7280;
+      --border:#dfe7f5;
+      --success:#16a34a;
+      --danger:#dc2626;
+      --warning:#f59e0b;
+      --shadow: 0 14px 30px rgba(16, 24, 40, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin:0;
+      font-family: Arial, sans-serif;
+      background:var(--bg);
+      color:#111827;
+    }
+
+    body {
+      min-height:100vh;
+      padding:24px;
+    }
+
+    .app-shell{
+      width:100%;
+      max-width:1200px;
+      margin:0 auto;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:20px;
+      box-shadow:var(--shadow);
+    }
+
+    .auth-card{
+      max-width:480px;
+      margin:0 auto;
+      padding:30px 24px;
+    }
+
+    .brand{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background:#dbeafe;
+      width:80px;
+      height:80px;
+      border-radius:50%;
+      margin:0 auto 16px;
+      font-size:34px;
+    }
+
+    h1,h2,h3,p{ margin:0; }
+    .title{
+      text-align:center;
+      font-size:2rem;
+      margin-bottom:6px;
+    }
+    .subtitle{
+      text-align:center;
+      color:var(--muted);
+      margin-bottom:20px;
+      font-size:0.98rem;
+    }
+
+    .tab-row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      background:#eef2ff;
+      padding:8px;
+      border-radius:12px;
+      margin-bottom:18px;
+    }
+
+    .tab{
+      border:none;
+      background:transparent;
+      color:#374151;
+      padding:10px 12px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .tab.active{
+      background:var(--primary);
+      color:white;
+    }
+
+    .field{
+      margin-bottom:16px;
+    }
+
+    label{
+      display:block;
+      margin-bottom:8px;
+      font-weight:700;
+      color:#1f2937;
+    }
+
+    input{
+      width:100%;
+      padding:12px 14px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      font-size:1rem;
+      outline:none;
+      background:#fff;
+    }
+
+    input:focus{
+      border-color:var(--primary);
+      box-shadow:0 0 0 3px rgba(37,99,235,.12);
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:13px 16px;
+      border:none;
+      border-radius:10px;
+      font-size:1rem;
+      font-weight:700;
+      cursor:pointer;
+      transition:.2s ease;
+    }
+
+    .btn.primary{
+      background:var(--primary);
+      color:white;
+      width:100%;
+    }
+
+    .btn.primary:hover{ background:var(--primary-dark); }
+
+    .btn.secondary{
+      background:#eef2ff;
+      color:#1f2937;
+    }
+
+    .btn.ghost{
+      background:transparent;
+      border:1px solid var(--border);
+      color:#374151;
+    }
+
+    .error{
+      background:#fef2f2;
+      color:var(--danger);
+      border:1px solid #fecaca;
+      padding:10px 12px;
+      border-radius:10px;
+      margin-top:12px;
+      font-size:0.92rem;
+    }
+
+    .info-box{
+      margin-top:18px;
+      background:#f8fafc;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:16px;
+      color:#374151;
+      font-size:0.94rem;
+    }
+
+    .info-box h4{
+      margin-bottom:8px;
+      font-size:1rem;
+    }
+
+    .info-box ul{
+      margin:0;
+      padding-left:18px;
+      line-height:1.7;
+    }
+
+    .exam-layout{
+      display:flex;
+      gap:20px;
+      align-items:flex-start;
+    }
+
+    .exam-main{
+      flex:1;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:24px;
+      min-height:520px;
+    }
+
+    .exam-sidebar{
+      width:210px;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:18px 12px;
+      position:sticky;
+      top:20px;
+    }
+
+    .topbar{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      padding:16px 18px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      margin-bottom:20px;
+    }
+
+    .student-meta{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .avatar{
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      background:#dbeafe;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      color:var(--primary);
+    }
+
+    .timer-box{
+      background:#fefce8;
+      color:#854d0e;
+      border:1px solid #facc15;
+      border-radius:10px;
+      padding:8px 12px;
+      font-weight:700;
+      font-size:0.95rem;
+    }
+
+    .question-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:18px;
+      flex-wrap:wrap;
+    }
+
+    .subject-chip{
+      display:inline-block;
+      padding:8px 12px;
+      border-radius:999px;
+      font-weight:700;
+      font-size:0.8rem;
+      color:white;
+      background:linear-gradient(135deg, #3b82f6, #2563eb);
+    }
+
+    .question-no{
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .question-text{
+      font-size:1.2rem;
+      line-height:1.7;
+      margin-bottom:18px;
+      font-weight:700;
+    }
+
+    .options{
+      display:grid;
+      gap:12px;
+      margin-bottom:20px;
+    }
+
+    .option{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:14px 16px;
+      background:#f8fafc;
+      cursor:pointer;
+      transition:.2s ease;
+    }
+
+    .option:hover{
+      border-color:#93c5fd;
+      background:#eff6ff;
+    }
+
+    .option.selected{
+      border-color:var(--primary);
+      background:#e0edff;
+    }
+
+    .option-circle{
+      width:20px;
+      height:20px;
+      border-radius:50%;
+      border:2px solid #64748b;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      background:white;
+      font-size:0.75rem;
+      font-weight:700;
+      color:transparent;
+      flex-shrink:0;
+    }
+
+    .option.selected .option-circle{
+      background:var(--primary);
+      border-color:var(--primary);
+      color:white;
+    }
+
+    .nav-row{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .nav-controls{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .pager-title{
+      font-size:0.82rem;
+      font-weight:700;
+      color:#475569;
+      margin-bottom:12px;
+      letter-spacing:0.04em;
+      text-transform:uppercase;
+    }
+
+    .pager{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:8px;
+      margin-top:18px;
+    }
+
+    .pager-btn{
+      width:100%;
+      min-height:42px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:white;
+      cursor:pointer;
+      font-weight:700;
+      color:#374151;
+      padding:6px;
+    }
+
+    .pager-btn.active{
+      background:var(--primary);
+      color:white;
+      border-color:var(--primary);
+    }
+
+    .pager-btn.answered{
+      background:#dcfce7;
+      color:#166534;
+      border-color:#bbf7d0;
+    }
+
+    .results-layout{
+      max-width:900px;
+      margin:0 auto;
+      display:flex;
+      flex-direction:column;
+      gap:24px;
+    }
+
+    .score-box{
+      background:linear-gradient(135deg, #eff6ff, #dcfce7);
+      border:1px solid var(--border);
+      border-radius:20px;
+      padding:28px 20px;
+      text-align:center;
+    }
+
+    .big-score{
+      font-size:3rem;
+      font-weight:900;
+      margin:8px 0;
+    }
+
+    .grade{
+      font-size:1.5rem;
+      font-weight:800;
+      color:var(--primary);
+      margin-top:8px;
+    }
+
+    .statistics{
+      display:grid;
+      grid-template-columns:repeat(3, 1fr);
+      gap:14px;
+      margin-top:16px;
+    }
+
+    .stat{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px 12px;
+      text-align:center;
+    }
+
+    .stat .value{
+      font-size:2rem;
+      font-weight:800;
+    }
+
+    .breakdown-card{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:18px;
+    }
+
+    .breakdown-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(220px,1fr));
+      gap:16px;
+      margin-top:12px;
+    }
+
+    .subject-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:8px 10px;
+      border-radius:10px;
+      background:#f8fafc;
+      margin-top:8px;
+      border:1px solid #edf2f7;
+      gap:8px;
+    }
+
+    .subject-row span:first-child{
+      font-weight:700;
+    }
+
+    .teacher-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:20px;
+    }
+
+    .teacher-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+      gap:18px;
+    }
+
+    .teacher-card{
+      padding:18px;
+      border:1px solid var(--border);
+      border-radius:18px;
+      background:var(--card);
+      box-shadow:var(--shadow);
+    }
+
+    .teacher-card h3{
+      margin-bottom:6px;
+    }
+
+    .teacher-card .reg{
+      color:var(--muted);
+      font-size:0.92rem;
+      margin-bottom:14px;
+    }
+
+    .teacher-score{
+      font-size:2rem;
+      font-weight:900;
+      margin:8px 0;
+    }
+
+    .teacher-breakdown{
+      display:grid;
+      gap:8px;
+      margin-top:14px;
+    }
+
+    .teacher-breakdown .row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-size:0.9rem;
+      background:#f8fafc;
+      border:1px solid var(--border);
+      padding:8px 10px;
+      border-radius:8px;
+    }
+
+    @media(max-width: 900px){
+      .exam-layout{
+        flex-direction:column;
+      }
+      .exam-sidebar{
+        width:100%;
+        position:static;
+      }
+      .pager{
+        grid-template-columns:repeat(5, minmax(0,1fr));
+      }
+    }
+
+    @media(max-width: 700px){
+      .statistics{ grid-template-columns:1fr; }
+      .breakdown-grid{ grid-template-columns:1fr; }
+      .topbar, .teacher-header{ flex-direction:column; align-items:flex-start; }
+      .nav-row{ align-items:flex-start; }
+      .nav-controls{ width:100%; }
+      .nav-controls .btn{ flex:1; }
+      .question-text{ font-size:1.08rem; }
+      .title{ font-size:1.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell" id="app"></div>
+
+  <script>
+    const students = [
+      { reg: "NEX/26/0869", name: "GODSWILL" },
+      { reg: "NEX/26/0336", name: "CHUK" },
+      { reg: "NEX/26/0142", name: "ADAEZE" },
+      { reg: "NEX/26/0215", name: "METU ONYEKA" },
+      { reg: "NEX/26/0478", name: "DANIEL NWANUA" },
+      { reg: "NEX/26/0523", name: "ALFRED OSONWA" },
+      { reg: "NEX/26/0601", name: "JOHN" },
+      { reg: "NEX/26/0701", name: "PRINCESS EZEAKOR" },
+      { reg: "NEX/26/0755", name: "KAYLA KAMSI" },
+      { reg: "NEX/26/0887", name: "CHISOM IROKA" },
+      { reg: "NEX/26/0892", name: "OSAWE LIGHT" },
+      { reg: "NEX/26/0934", name: "IROHA CHIMAMANDA" }
+    ];
+
+    const teacherCredentials = { username: "teacher", password: "admin/26/0002" };
+
+    const questionTemplates = {
+      Math: [
+        { q: "If 3x + 7 = 31, find x.", options: ["6", "7", "8", "9"], answer: "8" },
+        { q: "Solve: 2(x + 5) = 30.", options: ["8", "9", "10", "12"], answer: "10" },
+        { q: "A rectangle has length 12 cm and width 8 cm. Find its area.", options: ["80 cm²", "92 cm²", "96 cm²", "104 cm²"], answer: "96 cm²" },
+        { q: "Simplify: 3/4 + 1/8.", options: ["1/2", "5/8", "7/8", "3/4"], answer: "7/8" },
+        { q: "Solve x² - 9x + 20 = 0.", options: ["x = 4 or 5", "x = 2 or 10", "x = -4 or -5", "x = 3 or 6"], answer: "x = 4 or 5" },
+        { q: "Find the mean of 12, 15, 18, 25.", options: ["16.5", "17", "17.5", "18"], answer: "17.5" },
+        { q: "Find the gradient of the line through (2, 3) and (6, 11).", options: ["1", "2", "3", "4"], answer: "2" },
+        { q: "If a = 5, b = 3, c = 2, evaluate a² + b² - c².", options: ["24", "26", "28", "30"], answer: "30" },
+        { q: "What is 15% of 240?", options: ["30", "32", "34", "36"], answer: "36" },
+        { q: "Solve: 5x - 2 = 3x + 10.", options: ["4", "5", "6", "7"], answer: "6" },
+        { q: "What is the sum of interior angles of a pentagon?", options: ["360°", "540°", "720°", "900°"], answer: "540°" },
+        { q: "Find the volume of a cube with side length 4 cm.", options: ["16 cm³", "32 cm³", "48 cm³", "64 cm³"], answer: "64 cm³" }
+      ],
+      English: [
+        { q: "Choose the synonym of 'meticulous'.", options: ["careless", "careful", "quick", "confused"], answer: "careful" },
+        { q: "Which sentence is grammatically correct?", options: ["The children has finished their homework.", "The children have finished their homework.", "The children are finished their homework.", "The children finished their homework yesterdayly."], answer: "The children have finished their homework." },
+        { q: "Change to passive voice: 'They built the house.'", options: ["The house was built by them.", "The house is built by them.", "The house has been build by them.", "They were built the house."], answer: "The house was built by them." },
+        { q: "Choose the antonym of 'abundant'.", options: ["plentiful", "scarce", "ample", "bountiful"], answer: "scarce" },
+        { q: "Which word is a noun?", options: ["beautiful", "integrity", "quickly", "brightly"], answer: "integrity" },
+        { q: "Choose the correct punctuation: 'I am tired ___ I still need to study.'", options: ["but", "because", "although", "therefore"], answer: "but" },
+        { q: "Identify the adjective in the sentence: 'The bright student answered confidently.'", options: ["student", "answered", "bright", "confidently"], answer: "bright" },
+        { q: "Choose the most appropriate word: 'Because he was late, he ___ to apologize.'", options: ["had", "have", "were", "will"], answer: "had" },
+        { q: "Which is the correct spelling?", options: ["occured", "occurred", "occured", "occurence"], answer: "occurred" },
+        { q: "Choose the correct preposition: 'She is good ___ mathematics.'", options: ["in", "at", "on", "for"], answer: "in" },
+        { q: "The phrase 'to turn a blind eye' means:", options: ["to ignore", "to complain", "to listen carefully", "to be surprised"], answer: "to ignore" },
+        { q: "Which sentence uses a modal verb accurately?", options: ["She can sings well.", "She can sing well.", "She can to sing well.", "She can singing well."], answer: "She can sing well." }
+      ],
+      Chemistry: [
+        { q: "Balance the equation: H₂ + O₂ → H₂O.", options: ["H₂ + O₂ → H₂O", "2H₂ + O₂ → 2H₂O", "H₂ + 2O₂ → 2H₂O", "2H₂ + 2O₂ → 2H₂O"], answer: "2H₂ + O₂ → 2H₂O" },
+        { q: "What is the molar mass of NaCl?", options: ["29.5 g/mol", "35.5 g/mol", "58.5 g/mol", "63.5 g/mol"], answer: "58.5 g/mol" },
+        { q: "What is the oxidation number of oxygen in H₂O₂?", options: ["-1", "0", "+1", "-2"], answer: "-1" },
+        { q: "Which gas is produced when an acid reacts with a carbonate?", options: ["H₂", "CO₂", "O₂", "NH₃"], answer: "CO₂" },
+        { q: "The pH of a strong alkali is usually:", options: ["1-3", "4-6", "7", "12-14"], answer: "12-14" },
+        { q: "Which of these is an example of a base?", options: ["NaOH", "HCl", "H₂SO₄", "NaCl"], answer: "NaOH" },
+        { q: "Which element has the symbol Fe?", options: ["Fluorine", "Iron", "Francium", "Fermium"], answer: "Iron" },
+        { q: "What is the formula of calcium carbonate?", options: ["CaCO₃", "CaCl₂", "CaO", "CaSO₄"], answer: "CaCO₃" },
+        { q: "Which process is used to separate a soluble solid from a solution by evaporation?", options: ["Filtration", "Crystallization", "Distillation", "Chromatography"], answer: "Crystallization" },
+        { q: "Which of these is a covalent compound?", options: ["NaCl", "MgO", "CO₂", "CaO"], answer: "CO₂" },
+        { q: "What happens to the rate of reaction when temperature is increased?", options: ["It decreases", "It stays the same", "It increases", "It becomes zero"], answer: "It increases" },
+        { q: "Which substance is used as a catalyst in the decomposition of hydrogen peroxide?", options: ["MnO₂", "NaCl", "H₂O", "CuSO₄"], answer: "MnO₂" }
+      ],
+      Biology: [
+        { q: "Which organelle is the site of aerobic respiration in a cell?", options: ["Nucleus", "Chloroplast", "Mitochondrion", "Ribosome"], answer: "Mitochondrion" },
+        { q: "What is the main function of xylem in plants?", options: ["Transport food", "Transport water", "Absorb sunlight", "Store starch"], answer: "Transport water" },
+        { q: "Which genotype is homozygous dominant?", options: ["Aa", "aa", "AA", "Ab"], answer: "AA" },
+        { q: "The loss of water vapour from plants is called:", options: ["Respiration", "Transpiration", "Photosynthesis", "Germination"], answer: "Transpiration" },
+        { q: "Which blood cells carry oxygen?", options: ["Platelets", "Red blood cells", "White blood cells", "Plasma cells"], answer: "Red blood cells" },
+        { q: "A gene is best described as:", options: ["A cell membrane", "A segment of DNA that codes for a trait", "A protein molecule", "A blood vessel"], answer: "A segment of DNA that codes for a trait" },
+        { q: "Which enzyme begins starch digestion in the mouth?", options: ["Lipase", "Amylase", "Protease", "Pepsin"], answer: "Amylase" },
+        { q: "Which organelle is responsible for protein synthesis?", options: ["Ribosome", "Golgi body", "Lysosome", "Vacuole"], answer: "Ribosome" },
+        { q: "What is the function of the alveoli?", options: ["Pump blood", "Exchange gases", "Filter urine", "Digest food"], answer: "Exchange gases" },
+        { q: "Which part of the plant absorbs water from the soil?", options: ["Stem", "Leaf", "Root hair", "Flower"], answer: "Root hair" },
+        { q: "Which blood vessel carries oxygenated blood from the lungs to the heart?", options: ["Aorta", "Pulmonary vein", "Vena cava", "Pulmonary artery"], answer: "Pulmonary vein" },
+        { q: "Which hormone controls blood sugar levels?", options: ["Adrenaline", "Insulin", "Thyroxine", "Progesterone"], answer: "Insulin" }
+      ]
+    };
+
+    const allQuestions = Object.entries(questionTemplates).flatMap(([subject, templates]) =>
+      Array.from({ length: 50 }, (_, i) => ({ subject, ...(templates[i % templates.length]) }))
+    );
+
+    let timerInterval = null;
+
+    let state = {
+      screen: "login",
+      currentStudent: null,
+      currentIndex: 0,
+      answers: [],
+      currentQuestions: [...allQuestions],
+      timeLeft: 120 * 60,
+      teacherResults: {},
+      studentResult: null
+    };
+
+    const app = document.getElementById("app");
+
+    function formatTime(totalSeconds) {
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function clearTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    function startTimer() {
+      clearTimer();
+      timerInterval = setInterval(() => {
+        if (state.screen !== "exam") {
+          clearTimer();
+          return;
+        }
+
+        state.timeLeft -= 1;
+
+        if (state.timeLeft <= 0) {
+          clearTimer();
+          finishExam();
+          return;
+        }
+
+        renderExam();
+      }, 1000);
+    }
+
+    function render() {
+      if (state.screen === "login") renderLogin();
+      else if (state.screen === "exam") renderExam();
+      else if (state.screen === "results") renderResults();
+      else if (state.screen === "teacher") renderTeacherDashboard();
+    }
+
+    function renderLogin() {
+      app.innerHTML = `
+        <div class="card auth-card">
+          <div class="brand">🎓</div>
+          <h1 class="title">JAMB CBT Portal</h1>
+          <p class="subtitle" id="loginSubtitle">
+            Enter your registration number to begin your examination
+          </p>
+
+          <div class="tab-row">
+            <button class="tab active" data-mode="student">Student Login</button>
+            <button class="tab" data-mode="teacher">Teacher Login</button>
+          </div>
+
+          <div id="loginFormWrap"></div>
+
+          <div class="info-box">
+            <h4>Exam Instructions:</h4>
+            <ul>
+              <li>You have 120 minutes to complete all questions.</li>
+              <li>200 questions across 4 subjects.</li>
+              <li>Click Submit when done or time will auto-submit.</li>
+              <li>Use the question navigator on the side to move between questions.</li>
+            </ul>
+          </div>
+        </div>
+      `;
+
+      const formWrap = document.getElementById("loginFormWrap");
+      const subtitle = document.getElementById("loginSubtitle");
+
+      function showStudentForm() {
+        formWrap.innerHTML = `
+          <form id="studentLoginForm">
+            <div class="field">
+              <label for="regNumber">Registration Number</label>
+              <input id="regNumber" type="text" placeholder="e.g. NEX/26/0869" />
+            </div>
+            <button class="btn primary" type="submit">Start Examination</button>
+          </form>
+        `;
+        bindStudentLogin();
+      }
+
+      function showTeacherForm() {
+        formWrap.innerHTML = `
+          <form id="teacherLoginForm">
+            <div class="field">
+              <label for="teacherUsername">Teacher Username</label>
+              <input id="teacherUsername" type="text" value="teacher" />
+            </div>
+            <div class="field">
+              <label for="teacherPassword">Password</label>
+              <input id="teacherPassword" type="password" placeholder="Enter teacher password" />
+            </div>
+            <button class="btn primary" type="submit">Teacher Login</button>
+          </form>
+        `;
+        bindTeacherLogin();
+      }
+
+      document.querySelectorAll(".tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+          document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t === tab));
+          const mode = tab.dataset.mode;
+          subtitle.textContent =
+            mode === "student"
+              ? "Enter your registration number to begin your examination"
+              : "Teacher login to review student scores and performance";
+
+          if (mode === "student") showStudentForm();
+          else showTeacherForm();
+        });
+      });
+
+      showStudentForm();
+    }
+
+    function bindStudentLogin() {
+      const form = document.getElementById("studentLoginForm");
+      if (!form) return;
+
+      form.addEventListener("submit", e => {
+        e.preventDefault();
+        const reg = document.getElementById("regNumber").value.trim();
+
+        if (!reg) {
+          showLoginError("Please enter your registration number.");
+          return;
+        }
+
+        const student = students.find(s => s.reg.toLowerCase() === reg.toLowerCase());
+        if (!student) {
+          showLoginError("Invalid registration number. Please try again.");
+          return;
+        }
+
+        clearTimer();
+        state.currentStudent = student;
+        state.currentIndex = 0;
+        state.answers = Array(state.currentQuestions.length).fill(null);
+        state.timeLeft = 120 * 60;
+        state.screen = "exam";
+        startTimer();
+        render();
+      });
+    }
+
+    function bindTeacherLogin() {
+      const form = document.getElementById("teacherLoginForm");
+      if (!form) return;
+
+      form.addEventListener("submit", e => {
+        e.preventDefault();
+        const username = document.getElementById("teacherUsername").value.trim();
+        const password = document.getElementById("teacherPassword").value;
+
+        if (username === teacherCredentials.username && password === teacherCredentials.password) {
+          clearTimer();
+          state.screen = "teacher";
+          render();
+          return;
+        }
+
+        showLoginError("Incorrect teacher credentials.");
+      });
+    }
+
+    function showLoginError(message) {
+      const formWrap = document.getElementById("loginFormWrap");
+      const existing = formWrap.querySelector(".error");
+      if (existing) existing.remove();
+
+      const div = document.createElement("div");
+      div.className = "error";
+      div.textContent = message;
+      formWrap.appendChild(div);
+    }
+
+    function renderExam() {
+      const student = state.currentStudent;
+      const question = state.currentQuestions[state.currentIndex];
+      const selected = state.answers[state.currentIndex];
+
+      app.innerHTML = `
+        <div class="exam-layout">
+          <div class="exam-main">
+            <div class="topbar">
+              <div class="student-meta">
+                <div class="avatar">${student.name.charAt(0)}</div>
+                <div>
+                  <h3>${student.name}</h3>
+                  <p>${student.reg.toUpperCase()}</p>
+                </div>
+              </div>
+
+              <div class="timer-box">⏱️ ${formatTime(state.timeLeft)}</div>
+            </div>
+
+            <div class="question-top">
+              <span class="subject-chip">${question.subject}</span>
+              <span class="question-no">Question ${state.currentIndex + 1} / ${state.currentQuestions.length}</span>
+            </div>
+
+            <div class="question-text">${question.q}</div>
+
+            <div class="options">
+              ${question.options.map((option, idx) => {
+                const isSelected = selected === option;
+                return `
+                  <div class="option ${isSelected ? "selected" : ""}" data-index="${idx}">
+                    <span class="option-circle">${idx + 1}</span>
+                    <span>${option}</span>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+
+            <div class="nav-row">
+              <div class="nav-controls">
+                <button class="btn secondary" id="prevBtn" ${state.currentIndex === 0 ? "disabled" : ""}>Previous</button>
+                <button class="btn primary" id="nextBtn">${state.currentIndex === state.currentQuestions.length - 1 ? "Finish" : "Next"}</button>
+              </div>
+
+              <button class="btn ghost" id="saveExitBtn">Save & Exit</button>
+            </div>
+          </div>
+
+          <aside class="exam-sidebar">
+            <div class="pager-title">Question Navigator</div>
+            <div class="pager">
+              ${state.currentQuestions.map((_, idx) => {
+                const answered = state.answers[idx] !== null;
+                const active = idx === state.currentIndex;
+                return `
+                  <button
+                    class="pager-btn ${active ? "active" : ""} ${answered ? "answered" : ""}"
+                    data-pager="${idx}"
+                    title="Question ${idx + 1}"
+                  >${idx + 1}</button>
+                `;
+              }).join("")}
+            </div>
+          </aside>
+        </div>
+      `;
+
+      document.querySelectorAll(".option").forEach(item => {
+        item.addEventListener("click", () => {
+          const value = question.options[Number(item.dataset.index)];
+          state.answers[state.currentIndex] = value;
+          renderExam();
+        });
+      });
+
+      document.getElementById("prevBtn").addEventListener("click", () => {
+        if (state.currentIndex > 0) {
+          state.currentIndex -= 1;
+          renderExam();
+        }
+      });
+
+      document.getElementById("nextBtn").addEventListener("click", () => {
+        if (state.currentIndex < state.currentQuestions.length - 1) {
+          state.currentIndex += 1;
+          renderExam();
+        } else {
+          finishExam();
+        }
+      });
+
+      document.getElementById("saveExitBtn").addEventListener("click", () => {
+        clearTimer();
+        state.screen = "login";
+        state.currentStudent = null;
+        state.answers = [];
+        state.currentIndex = 0;
+        state.timeLeft = 120 * 60;
+        render();
+      });
+
+      document.querySelectorAll(".pager-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.currentIndex = Number(btn.dataset.pager);
+          renderExam();
+        });
+      });
+    }
+
+    function finishExam() {
+      clearTimer();
+
+      const student = state.currentStudent;
+      const total = state.currentQuestions.length;
+      let score = 0;
+
+      state.currentQuestions.forEach((question, i) => {
+        if (state.answers[i] === question.answer) score += 1;
+      });
+
+      const percentage = Math.round((score / total) * 100);
+
+      const breakdown = {};
+      state.currentQuestions.forEach((question, i) => {
+        const subject = question.subject;
+        if (!breakdown[subject]) breakdown[subject] = { correct: 0, total: 0 };
+        breakdown[subject].total += 1;
+        if (state.answers[i] === question.answer) breakdown[subject].correct += 1;
+      });
+
+      state.teacherResults[student.reg.toLowerCase()] = {
+        student,
+        score,
+        total,
+        percentage,
+        breakdown
+      };
+
+      state.studentResult = { student, score, total, percentage, breakdown };
+      state.screen = "results";
+      render();
+    }
+
+    function renderResults() {
+      const result = state.studentResult;
+      const percentage = result.percentage;
+
+      app.innerHTML = `
+        <div class="results-layout">
+          <div class="card score-box">
+            <h2>Examination Complete</h2>
+            <p style="margin-top:8px; color:#475569;">${result.student.name} (${result.student.reg.toUpperCase()})</p>
+            <div class="big-score">${result.score}/${result.total}</div>
+            <p>${percentage}% - ${percentage >= 50 ? "Pass" : "Needs Improvement"}</p>
+            <div class="grade">${getGradeLetter(percentage)}</div>
+          </div>
+
+          <div class="statistics">
+            <div class="stat">
+              <div class="value" style="color:var(--success);">${result.score}</div>
+              <div>Correct</div>
+            </div>
+            <div class="stat">
+              <div class="value" style="color:var(--danger);">${result.total - result.score}</div>
+              <div>Wrong</div>
+            </div>
+            <div class="stat">
+              <div class="value" style="color:#475569;">${result.total}</div>
+              <div>Total</div>
+            </div>
+          </div>
+
+          <div class="card breakdown-card">
+            <h3>Subject Performance</h3>
+            <div class="breakdown-grid">
+              ${Object.entries(result.breakdown).map(([subject, data]) => {
+                const pct = Math.round((data.correct / data.total) * 100);
+                return `
+                  <div class="subject-row">
+                    <span>${subject}</span>
+                    <span>${data.correct}/${data.total}</span>
+                    <span style="font-weight:700; color:${pct >= 50 ? '#166534' : '#dc2626'}">${pct}%</span>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+
+          <div class="nav-controls" style="display:flex; gap:12px;">
+            <button class="btn primary" id="takeAnotherBtn">Take Another Test</button>
+            <button class="btn ghost" id="backLoginBtn">Back to Login</button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById("takeAnotherBtn").addEventListener("click", () => {
+        clearTimer();
+        state.currentStudent = null;
+        state.currentIndex = 0;
+        state.answers = [];
+        state.studentResult = null;
+        state.timeLeft = 120 * 60;
+        state.screen = "login";
+        render();
+      });
+
+      document.getElementById("backLoginBtn").addEventListener("click", () => {
+        clearTimer();
+        state.currentStudent = null;
+        state.currentIndex = 0;
+        state.answers = [];
+        state.studentResult = null;
+        state.timeLeft = 120 * 60;
+        state.screen = "login";
+        render();
+      });
+    }
+
+    function renderTeacherDashboard() {
+      const results = Object.values(state.teacherResults).sort((a, b) => b.percentage - a.percentage);
+
+      app.innerHTML = `
+        <div class="app-shell">
+          <div class="teacher-header">
+            <div>
+              <p style="color:#64748b; font-size:0.9rem;">Teacher Portal</p>
+              <h2 style="font-size:2rem; margin-top:4px;">Student Performance Dashboard</h2>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <button class="btn ghost" id="teacherBackBtn">Back to Login</button>
+              <button class="btn secondary" id="teacherLogoutBtn">Logout</button>
+            </div>
+          </div>
+
+          ${results.length === 0 ? `
+            <div class="card auth-card">
+              <div class="brand">📊</div>
+              <h3 style="text-align:center;">No Student Results Yet</h3>
+              <p style="text-align:center; color:#64748b; margin-top:8px;">Student scores will appear here once they complete the exam.</p>
+            </div>
+          ` : `
+            <div class="teacher-grid">
+              ${results.map(item => `
+                <div class="teacher-card">
+                  <h3>${item.student.name}</h3>
+                  <div class="reg">${item.student.reg.toUpperCase()}</div>
+                  <div class="teacher-score">${item.score}/${item.total}</div>
+                  <p><strong>${item.percentage}%</strong> Score</p>
+
+                  <div class="teacher-breakdown">
+                    ${Object.entries(item.breakdown).map(([subject, data]) => {
+                      const pct = Math.round((data.correct / data.total) * 100);
+                      return `
+                        <div class="row">
+                          <span>${subject}</span>
+                          <span>${data.correct}/${data.total}</span>
+                          <span>${pct}%</span>
+                        </div>
+                      `;
+                    }).join("")}
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          `}
+        </div>
+      `;
+
+      document.getElementById("teacherBackBtn").addEventListener("click", () => {
+        clearTimer();
+        state.screen = "login";
+        render();
+      });
+
+      document.getElementById("teacherLogoutBtn").addEventListener("click", () => {
+        clearTimer();
+        state.screen = "login";
+        render();
+      });
+    }
+
+    function getGradeLetter(percent) {
+      if (percent >= 70) return "A";
+      if (percent >= 60) return "B";
+      if (percent >= 50) return "C";
+      if (percent >= 40) return "D";
+      return "F";
+    }
+
+    render();
+  </script>
+</body>
+</html>
