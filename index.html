@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JAMB CBT Portal</title>
+  <title>NEXORA-CBT PORTAL</title>
 
   <style>
     :root{
@@ -557,7 +557,7 @@
      ========================================================= */
 
   const GOOGLE_SCRIPT_URL =
-    "https://script.google.com/macros/s/AKfycbz_Nh671q0-6nOLaCFwX3JEc5SSNOaRdNUHhVZnlzBMTI4yOtGfD7kqqMMUgxd_ULRcqQ/exec";
+    "https://script.google.com/macros/s/AKfycbxvE-XrxWOc8SqGxt5ynEOKlxnzmH7s_fvG5d0Nc8T3jWbBPJI0pA1nIylqNkU953OV0w/exec";
 
   const TEACHER_KEY = "NEXORA-TEACHER-2026";
 
@@ -1323,31 +1323,34 @@
 
     const totalQuestions = state.currentQuestions.length;
     const percentage = Math.round((totalCorrect / totalQuestions) * 100);
+    const grade = getGradeLetter(percentage);
 
-    state.studentResult = {
+    const resultData = {
       student: state.currentStudent,
       score: totalCorrect,
       total: totalQuestions,
       percentage: percentage,
-      grade: getGradeLetter(percentage),
-      subjectBreakdown: subjectBreakdown,
-      date: new Date().toLocaleString()
+      grade: grade,
+      breakdown: subjectBreakdown,
+      date: new Date().toISOString()
     };
 
-    saveResultToGoogleSheets(state.studentResult);
-
+    state.studentResult = resultData;
     state.screen = "results";
     render();
+
+    // Send to Google Sheets
+    saveResultToGoogleSheets(resultData);
   }
 
 
   /*
    =========================================================
-   SAVE RESULT TO GOOGLE SHEETS
+   SAVE TO GOOGLE SHEETS
    =========================================================
   */
 
-  function saveResultToGoogleSheets(result){
+  function saveResultToGoogleSheets(result) {
     const payload = {
       key: TEACHER_KEY,
       reg: result.student.reg,
@@ -1362,9 +1365,35 @@
     fetch(GOOGLE_SCRIPT_URL, {
       method: "POST",
       mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "text/plain" }, // Use text/plain to prevent CORS preflight issues with Apps Script
       body: JSON.stringify(payload)
-    }).catch(err => console.error("Error saving to Google Sheets:", err));
+    })
+    .then(() => console.log("Result submission attempt finished."))
+    .catch(err => console.error("Error saving to Google Sheets:", err));
+  }
+
+
+  /*
+   =========================================================
+   FETCH TEACHER RESULTS
+   =========================================================
+  */
+
+  function fetchTeacherResults(){
+    state.loadingTeacher = true;
+
+    fetch(`${GOOGLE_SCRIPT_URL}?key=${TEACHER_KEY}`)
+      .then(res => res.json())
+      .then(data => {
+        state.teacherResults = data.results || [];
+        state.loadingTeacher = false;
+        if(state.screen === "teacher") renderTeacherDashboard();
+      })
+      .catch(err => {
+        console.error("Error loading results:", err);
+        state.loadingTeacher = false;
+        if(state.screen === "teacher") renderTeacherDashboard();
+      });
   }
 
 
@@ -1376,23 +1405,26 @@
 
   function renderResults(){
     const res = state.studentResult;
+    if(!res) return;
 
     app.innerHTML = `
       <div class="results-layout">
-        <div class="card score-box">
+        <div class="score-box card">
           <h2>Examination Completed!</h2>
-          <p style="margin-top:6px; color:var(--muted);">${res.student.name} (${res.student.reg.toUpperCase()})</p>
+          <p style="color: var(--muted); margin-top: 4px;">Candidate: <strong>${res.student.name}</strong> (${res.student.reg})</p>
+          
           <div class="big-score">${res.score} / ${res.total}</div>
-          <div class="grade">${res.percentage}% - ${res.grade}</div>
+          <p style="font-size: 1.2rem; font-weight: 700;">Score: ${res.percentage}%</p>
+          <div class="grade">${res.grade}</div>
         </div>
 
         <div class="breakdown-card">
           <h3>Subject Breakdown</h3>
           <div class="breakdown-grid">
-            ${Object.entries(res.subjectBreakdown).map(([subject, data]) => `
+            ${Object.entries(res.breakdown).map(([subject, stats]) => `
               <div class="subject-row">
                 <span>${subject}</span>
-                <span>${data.correct} /${data.total}</span>
+                <span>${stats.correct} / ${stats.total} (${Math.round((stats.correct / stats.total) * 100)}%)</span>
               </div>
             `).join('')}
           </div>
@@ -1406,39 +1438,17 @@
 
   /*
    =========================================================
-   TEACHER DASHBOARD
+   TEACHER DASHBOARD SCREEN
    =========================================================
   */
 
-  function fetchTeacherResults(){
-    state.loadingTeacher = true;
-    const fetchUrl = `${GOOGLE_SCRIPT_URL}?key=${encodeURIComponent(TEACHER_KEY)}`;
-
-    fetch(fetchUrl)
-      .then(res => res.json())
-      .then(data => {
-        state.loadingTeacher = false;
-        if(data && Array.isArray(data)){
-          state.teacherResults = data;
-        } else {
-          state.teacherResults = [];
-        }
-        if(state.screen === "teacher") renderTeacherDashboard();
-      })
-      .catch(err => {
-        console.error("Failed to load results:", err);
-        state.loadingTeacher = false;
-        if(state.screen === "teacher") renderTeacherDashboard();
-      });
-  }
-
   function renderTeacherDashboard(){
     app.innerHTML = `
-      <div>
+      <div class="app-shell">
         <div class="teacher-header">
           <div>
             <h2>Teacher Performance Dashboard</h2>
-            <p style="color:var(--muted);">Review real-time student CBT examination results</p>
+            <p style="color:var(--muted)">Review real-time student CBT examination results</p>
           </div>
           <div>
             <button class="btn secondary" onclick="fetchTeacherResults()">🔄 Refresh Results</button>
@@ -1447,22 +1457,25 @@
         </div>
 
         ${state.loadingTeacher ? `
-          <div class="card" style="padding:40px; text-align:center;">
-            <h3>Loading results from Google Sheets...</h3>
+          <div class="card" style="padding: 40px; text-align: center;">
+            <p>Loading student results from Google Sheets...</p>
           </div>
         ` : state.teacherResults.length === 0 ? `
-          <div class="card" style="padding:40px; text-align:center;">
-            <h3>No student results recorded yet.</h3>
+          <div class="card" style="padding: 40px; text-align: center;">
+            <p><strong>No student results recorded yet.</strong></p>
           </div>
         ` : `
           <div class="teacher-grid">
             ${state.teacherResults.map(r => `
               <div class="teacher-card">
-                <h3>${r.name || 'Unknown Student'}</h3>
-                <div class="reg">${r.reg || 'N/A'}</div>
-                <div class="teacher-score">${r.score} / ${r.total} (${r.percentage}%)</div>
-                <div><strong>Grade:</strong> ${r.grade}</div>
-                <div style="font-size:0.8rem; color:var(--muted); margin-top:4px;">${r.timestamp || ''}</div>
+                <h3>${r.name}</h3>
+                <div class="reg">${r.reg}</div>
+                <div class="teacher-score">${r.score} / ${r.total}</div>
+                <p><strong>Percentage:</strong> ${r.percentage}%</p>
+                <p><strong>Grade:</strong> ${r.grade}</p>
+                <p style="font-size: 0.8rem; color: var(--muted); margin-top: 8px;">
+                  Submitted: ${new Date(r.timestamp).toLocaleString()}
+                </p>
               </div>
             `).join('')}
           </div>
@@ -1471,17 +1484,22 @@
     `;
   }
 
+
+  /*
+   =========================================================
+   LOGOUT & RESET
+   =========================================================
+  */
+
   function logout(){
     clearTimer();
     state.screen = "login";
+    state.currentStudent = null;
+    state.studentResult = null;
     render();
   }
 
-
-  /* =========================================================
-     INITIAL START
-     ========================================================= */
-
+  // Initial App Render
   render();
 
 </script>
