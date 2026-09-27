@@ -439,25 +439,6 @@
       margin-top:8px;
     }
 
-    .statistics{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:14px;
-    }
-
-    .stat{
-      background:#fff;
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:16px 12px;
-      text-align:center;
-    }
-
-    .stat .value{
-      font-size:2rem;
-      font-weight:800;
-    }
-
     .breakdown-card{
       background:#fff;
       border:1px solid var(--border);
@@ -527,30 +508,6 @@
       margin:8px 0;
     }
 
-    .teacher-breakdown{
-      display:grid;
-      gap:8px;
-      margin-top:14px;
-    }
-
-    .teacher-breakdown .row{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      font-size:.9rem;
-      background:#f8fafc;
-      border:1px solid var(--border);
-      padding:8px 10px;
-      border-radius:8px;
-    }
-
-    .dashboard-summary{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:14px;
-      margin-bottom:20px;
-    }
-
     @media(max-width:900px){
       .exam-layout{
         flex-direction:column;
@@ -565,22 +522,10 @@
         grid-template-columns:repeat(5,minmax(0,1fr));
         max-height:200px;
       }
-
-      .dashboard-summary{
-        grid-template-columns:repeat(2,1fr);
-      }
     }
 
     @media(max-width:700px){
-      .statistics{
-        grid-template-columns:1fr;
-      }
-
       .breakdown-grid{
-        grid-template-columns:1fr;
-      }
-
-      .dashboard-summary{
         grid-template-columns:1fr;
       }
 
@@ -974,8 +919,7 @@
 
   /*
    =========================================================
-   CREATE 50 QUESTIONS FOR EACH SUBJECT
-   TOTAL = 200 QUESTIONS
+   CREATE 50 QUESTIONS FOR EACH SUBJECT (TOTAL = 200)
    =========================================================
   */
 
@@ -1007,28 +951,23 @@
     answers:[],
     currentQuestions:[...allQuestions],
     timeLeft:120 * 60,
-    teacherResults:{},
-    studentResult:null
+    teacherResults:[],
+    studentResult:null,
+    loadingTeacher:false
   };
 
-  const app =
-    document.getElementById("app");
+  const app = document.getElementById("app");
 
 
   /*
    =========================================================
-   TIME
+   TIME FORMATTER
    =========================================================
   */
 
   function formatTime(totalSeconds){
-
-    const minutes =
-      Math.floor(totalSeconds / 60);
-
-    const seconds =
-      totalSeconds % 60;
-
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
     return (
       String(minutes).padStart(2,"0") +
       ":" +
@@ -1039,24 +978,15 @@
 
   /*
    =========================================================
-   GRADE
+   GRADE CALCULATOR
    =========================================================
   */
 
   function getGradeLetter(pct){
-
-    if(pct >= 70)
-      return "A (Excellent)";
-
-    if(pct >= 60)
-      return "B (Very Good)";
-
-    if(pct >= 50)
-      return "C (Good)";
-
-    if(pct >= 40)
-      return "D (Fair)";
-
+    if(pct >= 70) return "A (Excellent)";
+    if(pct >= 60) return "B (Very Good)";
+    if(pct >= 50) return "C (Good)";
+    if(pct >= 40) return "D (Fair)";
     return "F (Fail)";
   }
 
@@ -1068,44 +998,31 @@
   */
 
   function clearTimer(){
-
     if(timerInterval){
-
       clearInterval(timerInterval);
-
       timerInterval = null;
     }
   }
 
 
   function startTimer(){
-
     clearTimer();
+    timerInterval = setInterval(() => {
+      if(state.screen !== "exam"){
+        clearTimer();
+        return;
+      }
 
-    timerInterval =
-      setInterval(() => {
+      state.timeLeft -= 1;
 
-        if(state.screen !== "exam"){
+      if(state.timeLeft <= 0){
+        clearTimer();
+        finishExam();
+        return;
+      }
 
-          clearTimer();
-
-          return;
-        }
-
-        state.timeLeft -= 1;
-
-        if(state.timeLeft <= 0){
-
-          clearTimer();
-
-          finishExam();
-
-          return;
-        }
-
-        renderExam();
-
-      },1000);
+      renderExam();
+    },1000);
   }
 
 
@@ -1116,233 +1033,92 @@
   */
 
   function render(){
-
-    if(state.screen === "login")
-      renderLogin();
-
-    else if(state.screen === "exam")
-      renderExam();
-
-    else if(state.screen === "results")
-      renderResults();
-
-    else if(state.screen === "teacher")
-      renderTeacherDashboard();
+    if(state.screen === "login") renderLogin();
+    else if(state.screen === "exam") renderExam();
+    else if(state.screen === "results") renderResults();
+    else if(state.screen === "teacher") renderTeacherDashboard();
   }
 
 
   /*
    =========================================================
-   LOGIN
+   LOGIN SCREEN
    =========================================================
   */
 
   function renderLogin(){
-
     app.innerHTML = `
-
       <div class="card auth-card">
-
         <div class="brand">🎓</div>
-
-        <h1 class="title">
-          JAMB CBT Portal
-        </h1>
-
-        <p
-          class="subtitle"
-          id="loginSubtitle"
-        >
+        <h1 class="title">JAMB CBT Portal</h1>
+        <p class="subtitle" id="loginSubtitle">
           Enter your registration number to begin your examination
         </p>
 
         <div class="tab-row">
-
-          <button
-            class="tab active"
-            data-mode="student"
-          >
-            Student Login
-          </button>
-
-          <button
-            class="tab"
-            data-mode="teacher"
-          >
-            Teacher Login
-          </button>
-
+          <button class="tab active" data-mode="student">Student Login</button>
+          <button class="tab" data-mode="teacher">Teacher Login</button>
         </div>
 
         <div id="loginFormWrap"></div>
 
         <div class="info-box">
-
-          <h4>
-            Exam Instructions:
-          </h4>
-
+          <h4>Exam Instructions:</h4>
           <ul>
-
-            <li>
-              You have 120 minutes to complete all questions.
-            </li>
-
-            <li>
-              200 questions across 4 subjects.
-            </li>
-
-            <li>
-              Click Submit when done or time will auto-submit.
-            </li>
-
-            <li>
-              You can click any question number on the right navigator to skip around.
-            </li>
-
+            <li>You have 120 minutes to complete all questions.</li>
+            <li>200 questions across 4 subjects.</li>
+            <li>Click Submit when done or time will auto-submit.</li>
+            <li>You can click any question number on the right navigator to skip around.</li>
           </ul>
-
         </div>
-
       </div>
     `;
 
-
-    const formWrap =
-      document.getElementById(
-        "loginFormWrap"
-      );
-
-    const subtitle =
-      document.getElementById(
-        "loginSubtitle"
-      );
-
+    const formWrap = document.getElementById("loginFormWrap");
+    const subtitle = document.getElementById("loginSubtitle");
 
     function showStudentForm(){
-
       formWrap.innerHTML = `
-
         <form id="studentLoginForm">
-
           <div class="field">
-
-            <label for="regNumber">
-              Registration Number
-            </label>
-
-            <input
-              id="regNumber"
-              type="text"
-              placeholder="e.g. NEX/26/0869"
-              autocomplete="off"
-            >
-
+            <label for="regNumber">Registration Number</label>
+            <input id="regNumber" type="text" placeholder="e.g. NEX/26/0869" autocomplete="off">
           </div>
-
-          <button
-            class="btn primary"
-            type="submit"
-          >
-            Start Examination
-          </button>
-
+          <button class="btn primary" type="submit">Start Examination</button>
         </form>
       `;
-
       bindStudentLogin();
     }
 
-
     function showTeacherForm(){
-
       formWrap.innerHTML = `
-
         <form id="teacherLoginForm">
-
           <div class="field">
-
-            <label for="teacherUsername">
-              Teacher Username
-            </label>
-
-            <input
-              id="teacherUsername"
-              type="text"
-              value="teacher"
-            >
-
+            <label for="teacherUsername">Teacher Username</label>
+            <input id="teacherUsername" type="text" value="teacher">
           </div>
-
           <div class="field">
-
-            <label for="teacherPassword">
-              Password
-            </label>
-
-            <input
-              id="teacherPassword"
-              type="password"
-              placeholder="Enter teacher password"
-            >
-
+            <label for="teacherPassword">Password</label>
+            <input id="teacherPassword" type="password" placeholder="Enter teacher password">
           </div>
-
-          <button
-            class="btn primary"
-            type="submit"
-          >
-            Teacher Login
-          </button>
-
+          <button class="btn primary" type="submit">Teacher Login</button>
         </form>
       `;
-
       bindTeacherLogin();
     }
 
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t === tab));
+        const mode = tab.dataset.mode;
+        subtitle.textContent = mode === "student"
+          ? "Enter your registration number to begin your examination"
+          : "Teacher login to review student scores and performance";
 
-    document
-      .querySelectorAll(".tab")
-      .forEach(tab => {
-
-        tab.addEventListener(
-          "click",
-          () => {
-
-            document
-              .querySelectorAll(".tab")
-              .forEach(t => {
-
-                t.classList.toggle(
-                  "active",
-                  t === tab
-                );
-
-              });
-
-
-            const mode =
-              tab.dataset.mode;
-
-
-            subtitle.textContent =
-              mode === "student"
-                ? "Enter your registration number to begin your examination"
-                : "Teacher login to review student scores and performance";
-
-
-            if(mode === "student")
-              showStudentForm();
-
-            else
-              showTeacherForm();
-
-          }
-        );
-
+        if(mode === "student") showStudentForm();
+        else showTeacherForm();
       });
-
+    });
 
     showStudentForm();
   }
@@ -1350,193 +1126,80 @@
 
   /*
    =========================================================
-   STUDENT LOGIN
+   STUDENT LOGIN BIND
    =========================================================
   */
 
   function bindStudentLogin(){
+    const form = document.getElementById("studentLoginForm");
+    if(!form) return;
 
-    const form =
-      document.getElementById(
-        "studentLoginForm"
-      );
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const reg = document.getElementById("regNumber").value.trim();
 
-    if(!form)
-      return;
-
-
-    form.addEventListener(
-      "submit",
-      e => {
-
-        e.preventDefault();
-
-
-        const reg =
-          document
-            .getElementById("regNumber")
-            .value
-            .trim();
-
-
-        if(!reg){
-
-          showLoginError(
-            "Please enter your registration number."
-          );
-
-          return;
-        }
-
-
-        const student =
-          students.find(
-            s =>
-              s.reg.toLowerCase() ===
-              reg.toLowerCase()
-          );
-
-
-        if(!student){
-
-          showLoginError(
-            "Invalid registration number. Please try again."
-          );
-
-          return;
-        }
-
-
-        clearTimer();
-
-
-        state.currentStudent =
-          student;
-
-        state.currentIndex =
-          0;
-
-        state.answers =
-          Array(
-            state.currentQuestions.length
-          ).fill(null);
-
-        state.timeLeft =
-          120 * 60;
-
-        state.studentResult =
-          null;
-
-        state.screen =
-          "exam";
-
-
-        startTimer();
-
-        render();
-
+      if(!reg){
+        showLoginError("Please enter your registration number.");
+        return;
       }
-    );
+
+      const student = students.find(s => s.reg.toLowerCase() === reg.toLowerCase());
+
+      if(!student){
+        showLoginError("Invalid registration number. Please try again.");
+        return;
+      }
+
+      clearTimer();
+      state.currentStudent = student;
+      state.currentIndex = 0;
+      state.answers = Array(state.currentQuestions.length).fill(null);
+      state.timeLeft = 120 * 60;
+      state.studentResult = null;
+      state.screen = "exam";
+
+      startTimer();
+      render();
+    });
   }
 
 
   /*
    =========================================================
-   TEACHER LOGIN
+   TEACHER LOGIN BIND
    =========================================================
   */
 
   function bindTeacherLogin(){
+    const form = document.getElementById("teacherLoginForm");
+    if(!form) return;
 
-    const form =
-      document.getElementById(
-        "teacherLoginForm"
-      );
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const username = document.getElementById("teacherUsername").value.trim();
+      const password = document.getElementById("teacherPassword").value.trim();
 
-    if(!form)
-      return;
-
-
-    form.addEventListener(
-      "submit",
-      e => {
-
-        e.preventDefault();
-
-
-        const username =
-          document
-            .getElementById(
-              "teacherUsername"
-            )
-            .value
-            .trim();
-
-
-        const password =
-          document
-            .getElementById(
-              "teacherPassword"
-            )
-            .value
-            .trim();
-
-
-        if(
-          username ===
-          teacherCredentials.username &&
-          password ===
-          teacherCredentials.password
-        ){
-
-          clearTimer();
-
-          state.screen =
-            "teacher";
-
-          render();
-
-          return;
-        }
-
-
-        showLoginError(
-          "Incorrect teacher credentials. Use 'teacher' and 'admin/26/0056'."
-        );
-
+      if(username === teacherCredentials.username && password === teacherCredentials.password){
+        clearTimer();
+        state.screen = "teacher";
+        fetchTeacherResults();
+        render();
+        return;
       }
-    );
+
+      showLoginError("Incorrect teacher credentials. Use 'teacher' and 'admin/26/0056'.");
+    });
   }
 
-
   function showLoginError(message){
+    const formWrap = document.getElementById("loginFormWrap");
+    if(!formWrap) return;
+    const oldError = formWrap.querySelector(".error");
+    if(oldError) oldError.remove();
 
-    const formWrap =
-      document.getElementById(
-        "loginFormWrap"
-      );
-
-    if(!formWrap)
-      return;
-
-
-    const oldError =
-      formWrap.querySelector(".error");
-
-
-    if(oldError)
-      oldError.remove();
-
-
-    const div =
-      document.createElement("div");
-
-    div.className =
-      "error";
-
-    div.textContent =
-      message;
-
+    const div = document.createElement("div");
+    div.className = "error";
+    div.textContent = message;
     formWrap.appendChild(div);
   }
 
@@ -1548,818 +1211,196 @@
   */
 
   function renderExam(){
-
-    const student =
-      state.currentStudent;
-
-    const question =
-      state.currentQuestions[
-        state.currentIndex
-      ];
-
-    const selected =
-      state.answers[
-        state.currentIndex
-      ];
-
+    const student = state.currentStudent;
+    const question = state.currentQuestions[state.currentIndex];
+    const selected = state.answers[state.currentIndex];
 
     app.innerHTML = `
-
       <div class="exam-layout">
-
         <div class="exam-main">
-
           <div class="topbar">
-
             <div class="student-meta">
-
-              <div class="avatar">
-                ${student.name.charAt(0)}
-              </div>
-
+              <div class="avatar">${student.name.charAt(0)}</div>
               <div>
-
-                <h3>
-                  ${student.name}
-                </h3>
-
-                <p>
-                  ${student.reg.toUpperCase()}
-                </p>
-
+                <h3>${student.name}</h3>
+                <p>${student.reg.toUpperCase()}</p>
               </div>
-
             </div>
-
-            <div class="timer-box">
-              ⏱️ ${formatTime(state.timeLeft)}
-            </div>
-
+            <div class="timer-box">⏱️ ${formatTime(state.timeLeft)}</div>
           </div>
-
 
           <div class="question-top">
-
-            <span class="subject-chip">
-              ${question.subject}
-            </span>
-
-            <span class="question-no">
-              Question
-              ${state.currentIndex + 1}
-              /
-              ${state.currentQuestions.length}
-            </span>
-
+            <span class="subject-chip">${question.subject}</span>
+            <span class="question-no">Question ${state.currentIndex + 1} of ${state.currentQuestions.length}</span>
           </div>
 
-
-          <div class="question-text">
-            ${question.q}
-          </div>
-
+          <div class="question-text">${question.q}</div>
 
           <div class="options">
-
-            ${question.options
-              .map(
-                (option,idx) => {
-
-                  const isSelected =
-                    selected === option;
-
-
-                  return `
-
-                    <div
-                      class="option ${
-                        isSelected
-                          ? "selected"
-                          : ""
-                      }"
-                      data-index="${idx}"
-                    >
-
-                      <span class="option-circle">
-                        ${idx + 1}
-                      </span>
-
-                      <span>
-                        ${option}
-                      </span>
-
-                    </div>
-
-                  `;
-                }
-              )
-              .join("")}
-
+            ${question.options.map((opt, i) => `
+              <div class="option ${selected === opt ? 'selected' : ''}" onclick="selectAnswer('${opt.replace(/'/g, "\\'")}')">
+                <div class="option-circle">${String.fromCharCode(65 + i)}</div>
+                <div>${opt}</div>
+              </div>
+            `).join('')}
           </div>
-
 
           <div class="nav-row">
-
             <div class="nav-controls">
-
-              <button
-                class="btn secondary"
-                id="prevBtn"
-                ${
-                  state.currentIndex === 0
-                    ? "disabled"
-                    : ""
-                }
-              >
-                Previous
-              </button>
-
-              <button
-                class="btn primary"
-                id="nextBtn"
-              >
-                ${
-                  state.currentIndex ===
-                  state.currentQuestions.length - 1
-                    ? "Finish"
-                    : "Next"
-                }
-              </button>
-
+              <button class="btn secondary" onclick="prevQuestion()" ${state.currentIndex === 0 ? 'disabled' : ''}>Previous</button>
+              <button class="btn secondary" onclick="nextQuestion()" ${state.currentIndex === state.currentQuestions.length - 1 ? 'disabled' : ''}>Next</button>
             </div>
-
-
-            <button
-              class="btn ghost"
-              id="saveExitBtn"
-            >
-              Save & Exit
-            </button>
-
+            <button class="btn primary" style="width:auto;" onclick="finishExam()">Submit Exam</button>
           </div>
-
         </div>
 
-
-        <aside class="exam-sidebar">
-
-          <div class="pager-title">
-            Question Navigator
-          </div>
-
+        <div class="exam-sidebar">
+          <div class="pager-title">Questions</div>
           <div class="pager">
-
-            ${state.currentQuestions
-              .map(
-                (_,idx) => {
-
-                  const answered =
-                    state.answers[idx] !== null;
-
-                  const active =
-                    idx ===
-                    state.currentIndex;
-
-
-                  return `
-
-                    <button
-                      class="
-                        pager-btn
-                        ${
-                          active
-                            ? "active"
-                            : ""
-                        }
-                        ${
-                          answered
-                            ? "answered"
-                            : ""
-                        }
-                      "
-                      data-pager="${idx}"
-                    >
-                      ${idx + 1}
-                    </button>
-
-                  `;
-                }
-              )
-              .join("")}
-
+            ${state.currentQuestions.map((q, idx) => `
+              <button class="pager-btn ${idx === state.currentIndex ? 'active' : ''} ${state.answers[idx] !== null ? 'answered' : ''}" onclick="jumpToQuestion(${idx})">
+                ${idx + 1}
+              </button>
+            `).join('')}
           </div>
-
-        </aside>
-
+        </div>
       </div>
     `;
+  }
 
+  function selectAnswer(option){
+    state.answers[state.currentIndex] = option;
+    renderExam();
+  }
 
-    document
-      .querySelectorAll(".option")
-      .forEach(item => {
+  function prevQuestion(){
+    if(state.currentIndex > 0){
+      state.currentIndex--;
+      renderExam();
+    }
+  }
 
-        item.addEventListener(
-          "click",
-          () => {
+  function nextQuestion(){
+    if(state.currentIndex < state.currentQuestions.length - 1){
+      state.currentIndex++;
+      renderExam();
+    }
+  }
 
-            const value =
-              question.options[
-                Number(
-                  item.dataset.index
-                )
-              ];
-
-
-            state.answers[
-              state.currentIndex
-            ] = value;
-
-
-            renderExam();
-
-          }
-        );
-
-      });
-
-
-    document
-      .getElementById("prevBtn")
-      .addEventListener(
-        "click",
-        () => {
-
-          if(
-            state.currentIndex > 0
-          ){
-
-            state.currentIndex--;
-
-            renderExam();
-
-          }
-
-        }
-      );
-
-
-    document
-      .getElementById("nextBtn")
-      .addEventListener(
-        "click",
-        () => {
-
-          if(
-            state.currentIndex <
-            state.currentQuestions.length - 1
-          ){
-
-            state.currentIndex++;
-
-            renderExam();
-
-          }else{
-
-            finishExam();
-
-          }
-
-        }
-      );
-
-
-    document
-      .getElementById("saveExitBtn")
-      .addEventListener(
-        "click",
-        () => {
-
-          clearTimer();
-
-          state.screen =
-            "login";
-
-          state.currentStudent =
-            null;
-
-          state.answers =
-            [];
-
-          state.currentIndex =
-            0;
-
-          state.timeLeft =
-            120 * 60;
-
-          render();
-
-        }
-      );
-
-
-    document
-      .querySelectorAll(".pager-btn")
-      .forEach(btn => {
-
-        btn.addEventListener(
-          "click",
-          () => {
-
-            state.currentIndex =
-              Number(
-                btn.dataset.pager
-              );
-
-            renderExam();
-
-          }
-        );
-
-      });
-
+  function jumpToQuestion(idx){
+    state.currentIndex = idx;
+    renderExam();
   }
 
 
   /*
    =========================================================
-   FINISH EXAM
+   FINISH & SUBMIT EXAM
    =========================================================
   */
 
-  async function finishExam(){
+  function finishExam(){
+    if(state.screen === "exam"){
+      if(!confirm("Are you sure you want to submit your examination?")) return;
+    }
 
     clearTimer();
 
+    // Calculate score
+    let totalCorrect = 0;
+    const subjectBreakdown = {};
 
-    const student =
-      state.currentStudent;
-
-
-    const total =
-      state.currentQuestions.length;
-
-
-    let score = 0;
-
-
-    state.currentQuestions.forEach(
-      (question,i) => {
-
-        if(
-          state.answers[i] ===
-          question.answer
-        ){
-
-          score++;
-
-        }
-
+    state.currentQuestions.forEach((q, idx) => {
+      if(!subjectBreakdown[q.subject]){
+        subjectBreakdown[q.subject] = { correct: 0, total: 0 };
       }
-    );
-
-
-    const percentage =
-      Math.round(
-        (score / total) * 100
-      );
-
-
-    const grade =
-      getGradeLetter(percentage);
-
-
-    const breakdown = {};
-
-
-    state.currentQuestions.forEach(
-      (question,i) => {
-
-        const subject =
-          question.subject;
-
-
-        if(!breakdown[subject]){
-
-          breakdown[subject] = {
-            correct:0,
-            total:0
-          };
-
-        }
-
-
-        breakdown[subject].total++;
-
-
-        if(
-          state.answers[i] ===
-          question.answer
-        ){
-
-          breakdown[subject].correct++;
-
-        }
-
+      subjectBreakdown[q.subject].total++;
+      if(state.answers[idx] === q.answer){
+        totalCorrect++;
+        subjectBreakdown[q.subject].correct++;
       }
-    );
+    });
 
-
-    /*
-      SAVE RESULT LOCALLY
-    */
-
-    state.teacherResults[
-      student.reg.toLowerCase()
-    ] = {
-
-      student,
-      score,
-      total,
-      percentage,
-      grade,
-      breakdown
-
-    };
-
-
-    /*
-      SEND RESULT TO GOOGLE SHEETS
-    */
-
-    const formData =
-      new URLSearchParams();
-
-
-    formData.append(
-      "reg",
-      student.reg
-    );
-
-    formData.append(
-      "name",
-      student.name
-    );
-
-    formData.append(
-      "score",
-      score
-    );
-
-    formData.append(
-      "total",
-      total
-    );
-
-    formData.append(
-      "percentage",
-      percentage
-    );
-
-    formData.append(
-      "grade",
-      grade
-    );
-
-    formData.append(
-      "math",
-      breakdown.Math
-        ? breakdown.Math.correct
-        : 0
-    );
-
-    formData.append(
-      "english",
-      breakdown.English
-        ? breakdown.English.correct
-        : 0
-    );
-
-    formData.append(
-      "chemistry",
-      breakdown.Chemistry
-        ? breakdown.Chemistry.correct
-        : 0
-    );
-
-    formData.append(
-      "biology",
-      breakdown.Biology
-        ? breakdown.Biology.correct
-        : 0
-    );
-
-
-    try{
-
-      await fetch(
-        GOOGLE_SCRIPT_URL,
-        {
-          method:"POST",
-          mode:"no-cors",
-          body:formData
-        }
-      );
-
-      console.log(
-        "Result sent to Google Sheets."
-      );
-
-    }catch(error){
-
-      console.error(
-        "Google Sheets error:",
-        error
-      );
-
-    }
-
-
-    /*
-      DISPLAY RESULT
-    */
+    const totalQuestions = state.currentQuestions.length;
+    const percentage = Math.round((totalCorrect / totalQuestions) * 100);
 
     state.studentResult = {
-
-      student,
-      score,
-      total,
-      percentage,
-      grade,
-      breakdown
-
+      student: state.currentStudent,
+      score: totalCorrect,
+      total: totalQuestions,
+      percentage: percentage,
+      grade: getGradeLetter(percentage),
+      subjectBreakdown: subjectBreakdown,
+      date: new Date().toLocaleString()
     };
 
+    saveResultToGoogleSheets(state.studentResult);
 
-    state.screen =
-      "results";
-
-
+    state.screen = "results";
     render();
-
   }
 
 
   /*
    =========================================================
-   RESULTS PAGE
+   SAVE RESULT TO GOOGLE SHEETS
+   =========================================================
+  */
+
+  function saveResultToGoogleSheets(result){
+    const payload = {
+      key: TEACHER_KEY,
+      reg: result.student.reg,
+      name: result.student.name,
+      score: result.score,
+      total: result.total,
+      percentage: result.percentage,
+      grade: result.grade,
+      timestamp: result.date
+    };
+
+    fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).catch(err => console.error("Error saving to Google Sheets:", err));
+  }
+
+
+  /*
+   =========================================================
+   STUDENT RESULTS SCREEN
    =========================================================
   */
 
   function renderResults(){
-
-    const result =
-      state.studentResult;
-
-
-    const percentage =
-      result.percentage;
-
+    const res = state.studentResult;
 
     app.innerHTML = `
-
       <div class="results-layout">
-
         <div class="card score-box">
-
-          <h2>
-            Examination Complete
-          </h2>
-
-          <p
-            style="
-              margin-top:8px;
-              color:#475569;
-            "
-          >
-            ${result.student.name}
-            (${result.student.reg.toUpperCase()})
-          </p>
-
-          <div class="big-score">
-            ${result.score}/${result.total}
-          </div>
-
-          <p>
-            ${percentage}%
-            -
-            ${
-              percentage >= 50
-                ? "Pass"
-                : "Needs Improvement"
-            }
-          </p>
-
-          <div class="grade">
-            ${result.grade}
-          </div>
-
+          <h2>Examination Completed!</h2>
+          <p style="margin-top:6px; color:var(--muted);">${res.student.name} (${res.student.reg.toUpperCase()})</p>
+          <div class="big-score">${res.score} / ${res.total}</div>
+          <div class="grade">${res.percentage}% - ${res.grade}</div>
         </div>
 
-
-        <div class="statistics">
-
-          <div class="stat">
-
-            <div
-              class="value"
-              style="color:var(--success);"
-            >
-              ${result.score}
-            </div>
-
-            <div>
-              Correct
-            </div>
-
-          </div>
-
-
-          <div class="stat">
-
-            <div
-              class="value"
-              style="color:var(--danger);"
-            >
-              ${result.total - result.score}
-            </div>
-
-            <div>
-              Wrong
-            </div>
-
-          </div>
-
-
-          <div class="stat">
-
-            <div
-              class="value"
-              style="color:#475569;"
-            >
-              ${result.total}
-            </div>
-
-            <div>
-              Total
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <div class="card breakdown-card">
-
-          <h3>
-            Subject Performance
-          </h3>
-
+        <div class="breakdown-card">
+          <h3>Subject Breakdown</h3>
           <div class="breakdown-grid">
-
-            ${Object.entries(
-              result.breakdown
-            )
-            .map(
-              ([subject,data]) => {
-
-                const pct =
-                  Math.round(
-                    (data.correct /
-                    data.total) * 100
-                  );
-
-
-                return `
-
-                  <div class="subject-row">
-
-                    <span>
-                      ${subject}
-                    </span>
-
-                    <span>
-                      ${data.correct}/${data.total}
-                    </span>
-
-                    <span
-                      style="
-                        font-weight:700;
-                        color:${
-                          pct >= 50
-                            ? "#166534"
-                            : "#dc2626"
-                        };
-                      "
-                    >
-                      ${pct}%
-                    </span>
-
-                  </div>
-
-                `;
-
-              }
-            )
-            .join("")}
-
+            ${Object.entries(res.subjectBreakdown).map(([subject, data]) => `
+              <div class="subject-row">
+                <span>${subject}</span>
+                <span>${data.correct} /${data.total}</span>
+              </div>
+            `).join('')}
           </div>
-
         </div>
 
-
-        <div
-          class="nav-controls"
-          style="
-            display:flex;
-            gap:12px;
-          "
-        >
-
-          <button
-            class="btn primary"
-            id="takeAnotherBtn"
-          >
-            Take Another Test
-          </button>
-
-          <button
-            class="btn ghost"
-            id="backLoginBtn"
-          >
-            Back to Login
-          </button>
-
-        </div>
-
+        <button class="btn primary" onclick="logout()">Return to Login</button>
       </div>
-
     `;
-
-
-    document
-      .getElementById("takeAnotherBtn")
-      .addEventListener(
-        "click",
-        () => {
-
-          clearTimer();
-
-          state.currentStudent =
-            null;
-
-          state.currentIndex =
-            0;
-
-          state.answers =
-            [];
-
-          state.studentResult =
-            null;
-
-          state.timeLeft =
-            120 * 60;
-
-          state.screen =
-            "login";
-
-          render();
-
-        }
-      );
-
-
-    document
-      .getElementById("backLoginBtn")
-      .addEventListener(
-        "click",
-        () => {
-
-          clearTimer();
-
-          state.currentStudent =
-            null;
-
-          state.currentIndex =
-            0;
-
-          state.answers =
-            [];
-
-          state.studentResult =
-            null;
-
-          state.timeLeft =
-            120 * 60;
-
-          state.screen =
-            "login";
-
-          render();
-
-        }
-      );
-
   }
 
 
@@ -2369,517 +1410,80 @@
    =========================================================
   */
 
-  async function renderTeacherDashboard(){
+  function fetchTeacherResults(){
+    state.loadingTeacher = true;
+    const fetchUrl = `${GOOGLE_SCRIPT_URL}?key=${encodeURIComponent(TEACHER_KEY)}`;
 
+    fetch(fetchUrl)
+      .then(res => res.json())
+      .then(data => {
+        state.loadingTeacher = false;
+        if(data && Array.isArray(data)){
+          state.teacherResults = data;
+        } else {
+          state.teacherResults = [];
+        }
+        if(state.screen === "teacher") renderTeacherDashboard();
+      })
+      .catch(err => {
+        console.error("Failed to load results:", err);
+        state.loadingTeacher = false;
+        if(state.screen === "teacher") renderTeacherDashboard();
+      });
+  }
+
+  function renderTeacherDashboard(){
     app.innerHTML = `
-
-      <div class="app-shell">
-
+      <div>
         <div class="teacher-header">
-
           <div>
-
-            <p
-              style="
-                color:#64748b;
-                font-size:.9rem;
-              "
-            >
-              Teacher Portal
-            </p>
-
-            <h2
-              style="
-                font-size:2rem;
-                margin-top:4px;
-              "
-            >
-              Student Performance Dashboard
-            </h2>
-
-            <p
-              style="
-                color:#64748b;
-                margin-top:6px;
-              "
-            >
-              Results are loaded from Google Sheets.
-            </p>
-
+            <h2>Teacher Performance Dashboard</h2>
+            <p style="color:var(--muted);">Review real-time student CBT examination results</p>
           </div>
-
-
-          <div
-            style="
-              display:flex;
-              gap:10px;
-              flex-wrap:wrap;
-            "
-          >
-
-            <button
-              class="btn secondary"
-              id="refreshResultsBtn"
-            >
-              🔄 Refresh Results
-            </button>
-
-            <button
-              class="btn ghost"
-              id="teacherLogoutBtn"
-            >
-              Logout
-            </button>
-
+          <div>
+            <button class="btn secondary" onclick="fetchTeacherResults()">🔄 Refresh Results</button>
+            <button class="btn ghost" onclick="logout()">Logout</button>
           </div>
-
         </div>
 
-
-        <div id="teacherResultsArea">
-
-          <div
-            class="card"
-            style="
-              padding:32px;
-              text-align:center;
-            "
-          >
-
-            <p style="color:var(--muted);">
-              Loading student results...
-            </p>
-
+        ${state.loadingTeacher ? `
+          <div class="card" style="padding:40px; text-align:center;">
+            <h3>Loading results from Google Sheets...</h3>
           </div>
-
-        </div>
-
+        ` : state.teacherResults.length === 0 ? `
+          <div class="card" style="padding:40px; text-align:center;">
+            <h3>No student results recorded yet.</h3>
+          </div>
+        ` : `
+          <div class="teacher-grid">
+            ${state.teacherResults.map(r => `
+              <div class="teacher-card">
+                <h3>${r.name || 'Unknown Student'}</h3>
+                <div class="reg">${r.reg || 'N/A'}</div>
+                <div class="teacher-score">${r.score} / ${r.total} (${r.percentage}%)</div>
+                <div><strong>Grade:</strong> ${r.grade}</div>
+                <div style="font-size:0.8rem; color:var(--muted); margin-top:4px;">${r.timestamp || ''}</div>
+              </div>
+            `).join('')}
+          </div>
+        `}
       </div>
-
     `;
+  }
 
-
-    document
-      .getElementById("teacherLogoutBtn")
-      .addEventListener(
-        "click",
-        () => {
-
-          state.screen =
-            "login";
-
-          render();
-
-        }
-      );
-
-
-    document
-      .getElementById("refreshResultsBtn")
-      .addEventListener(
-        "click",
-        () => {
-
-          loadTeacherResults();
-
-        }
-      );
-
-
-    await loadTeacherResults();
-
+  function logout(){
+    clearTimer();
+    state.screen = "login";
+    render();
   }
 
 
-  /*
-   =========================================================
-   LOAD RESULTS FROM GOOGLE SHEETS
-   =========================================================
-  */
-
-  async function loadTeacherResults(){
-
-    const resultsArea =
-      document.getElementById(
-        "teacherResultsArea"
-      );
-
-
-    if(!resultsArea)
-      return;
-
-
-    resultsArea.innerHTML = `
-
-      <div
-        class="card"
-        style="
-          padding:32px;
-          text-align:center;
-        "
-      >
-
-        <p style="color:var(--muted);">
-          Loading student results...
-        </p>
-
-      </div>
-
-    `;
-
-
-    try{
-
-      const url =
-        GOOGLE_SCRIPT_URL +
-        "?action=getResults&key=" +
-        encodeURIComponent(
-          TEACHER_KEY
-        );
-
-
-      const response =
-        await fetch(url);
-
-
-      const data =
-        await response.json();
-
-
-      if(!data.success){
-
-        resultsArea.innerHTML = `
-
-          <div
-            class="card"
-            style="
-              padding:32px;
-              text-align:center;
-            "
-          >
-
-            <p
-              style="
-                color:var(--danger);
-                font-weight:700;
-              "
-            >
-              Could not load results.
-            </p>
-
-            <p
-              style="
-                margin-top:8px;
-                color:var(--muted);
-              "
-            >
-              ${
-                data.error ||
-                "Unknown error"
-              }
-            </p>
-
-          </div>
-
-        `;
-
-        return;
-      }
-
-
-      const results =
-        data.results || [];
-
-
-      if(results.length === 0){
-
-        resultsArea.innerHTML = `
-
-          <div
-            class="card"
-            style="
-              padding:32px;
-              text-align:center;
-            "
-          >
-
-            <p style="color:var(--muted);">
-              No students have submitted exams yet.
-            </p>
-
-          </div>
-
-        `;
-
-        return;
-      }
-
-
-      results.sort(
-        (a,b) =>
-          Number(b.percentage) -
-          Number(a.percentage)
-      );
-
-
-      const totalStudents =
-        results.length;
-
-
-      const totalScore =
-        results.reduce(
-          (sum,r) =>
-            sum + Number(r.percentage || 0),
-          0
-        );
-
-
-      const average =
-        Math.round(
-          totalScore /
-          totalStudents
-        );
-
-
-      const passed =
-        results.filter(
-          r =>
-            Number(r.percentage) >= 50
-        ).length;
-
-
-      const failed =
-        totalStudents -
-        passed;
-
-
-      resultsArea.innerHTML = `
-
-        <div class="dashboard-summary">
-
-          <div class="stat">
-
-            <div class="value">
-              ${totalStudents}
-            </div>
-
-            <div>
-              Students
-            </div>
-
-          </div>
-
-
-          <div class="stat">
-
-            <div
-              class="value"
-              style="color:var(--primary);"
-            >
-              ${average}%
-            </div>
-
-            <div>
-              Average
-            </div>
-
-          </div>
-
-
-          <div class="stat">
-
-            <div
-              class="value"
-              style="color:var(--success);"
-            >
-              ${passed}
-            </div>
-
-            <div>
-              Passed
-            </div>
-
-          </div>
-
-
-          <div class="stat">
-
-            <div
-              class="value"
-              style="color:var(--danger);"
-            >
-              ${failed}
-            </div>
-
-            <div>
-              Needs Improvement
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <div class="teacher-grid">
-
-          ${results
-            .map(r => {
-
-              const math =
-                Number(r.math || 0);
-
-              const english =
-                Number(r.english || 0);
-
-              const chemistry =
-                Number(r.chemistry || 0);
-
-              const biology =
-                Number(r.biology || 0);
-
-
-              return `
-
-                <div class="teacher-card">
-
-                  <h3>
-                    ${r.name}
-                  </h3>
-
-                  <div class="reg">
-                    ${String(
-                      r.reg
-                    ).toUpperCase()}
-                  </div>
-
-                  <div class="teacher-score">
-                    ${r.score} / ${r.total}
-                  </div>
-
-                  <div
-                    style="
-                      font-weight:700;
-                      color:var(--primary);
-                    "
-                  >
-                    ${r.percentage}%
-                    (${r.grade})
-                  </div>
-
-                  <div class="teacher-breakdown">
-
-                    <div class="row">
-                      <span>Math</span>
-                      <span>${math}/50</span>
-                    </div>
-
-                    <div class="row">
-                      <span>English</span>
-                      <span>${english}/50</span>
-                    </div>
-
-                    <div class="row">
-                      <span>Chemistry</span>
-                      <span>${chemistry}/50</span>
-                    </div>
-
-                    <div class="row">
-                      <span>Biology</span>
-                      <span>${biology}/50</span>
-                    </div>
-
-                  </div>
-
-                </div>
-
-              `;
-
-            })
-            .join("")}
-
-        </div>
-
-      `;
-
-    }
-
-    catch(error){
-
-      console.error(error);
-
-
-      resultsArea.innerHTML = `
-
-        <div
-          class="card"
-          style="
-            padding:32px;
-            text-align:center;
-          "
-        >
-
-          <p
-            style="
-              color:var(--danger);
-              font-weight:700;
-            "
-          >
-            Unable to connect to Google Sheets.
-          </p>
-
-          <p
-            style="
-              margin-top:8px;
-              color:var(--muted);
-            "
-          >
-            Please check your internet connection
-            and make sure your Google Apps Script
-            is deployed as a Web App.
-          </p>
-
-          <button
-            class="btn secondary"
-            id="retryResultsBtn"
-            style="margin-top:15px;"
-          >
-            Try Again
-          </button>
-
-        </div>
-
-      `;
-
-
-      const retry =
-        document.getElementById(
-          "retryResultsBtn"
-        );
-
-
-      if(retry){
-
-        retry.addEventListener(
-          "click",
-          loadTeacherResults
-        );
-
-      }
-
-    }
-
-  }
-
-
-  /*
-   =========================================================
-   START PORTAL
-   =========================================================
-  */
+  /* =========================================================
+     INITIAL START
+     ========================================================= */
 
   render();
 
 </script>
-
 </body>
 </html>
